@@ -125,6 +125,7 @@ class NIF(Model):
 
         #Adding pruning functionality to parameter_net
         if self.prune_parameter_net == True:
+            print("Wrapping ParameterNet")
             pnet_layers_list = prune_low_magnitude(pnet_layers_list, **self.pruning_params)
 
         return pnet_layers_list
