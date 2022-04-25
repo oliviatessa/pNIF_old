@@ -12,7 +12,7 @@ prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
 ConstantSparsity = tfmot.sparsity.keras.ConstantSparsity
 
 class NIF(Model):
-    def __init__(self, cfg_shape_net, cfg_parameter_net, pruning_params, prune_parameter_net, mixed_policy='float32'):
+    def __init__(self, cfg_shape_net, cfg_parameter_net, pruning_params, mixed_policy='float32'):
         super(NIF, self).__init__()
         self.cfg_shape_net = cfg_shape_net
         self.si_dim = cfg_shape_net['input_dim']
@@ -29,7 +29,7 @@ class NIF(Model):
         self.compute_Dtype = self.mixed_policy.compute_dtype
 
         self.pruning_params = pruning_params
-        self.prune_parameter_net = prune_parameter_net
+        #self.prune_parameter_net = prune_parameter_net
 
         # initialize the parameter net structure
         self.pnet_list = self._initialize_pnet(cfg_parameter_net, cfg_shape_net)
@@ -123,8 +123,8 @@ class NIF(Model):
         pnet_layers_list.append(last_layer)
 
         #Adding pruning functionality to parameter_net
-        if self.prune_parameter_net == True:
-            pnet_layers_list = prune_low_magnitude(pnet_layers_list, **self.pruning_params)
+        #if self.prune_parameter_net == True:
+            #pnet_layers_list = prune_low_magnitude(pnet_layers_list, **self.pruning_params)
 
         return pnet_layers_list
 
