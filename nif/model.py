@@ -123,10 +123,6 @@ class NIF(Model):
                            dtype=self.mixed_policy)
         pnet_layers_list.append(last_layer)
 
-        #Adding pruning functionality to parameter_net
-        if self.prune_parameter_net == True:
-            pnet_layers_list = prune_low_magnitude(pnet_layers_list, **self.pruning_params)
-
         return pnet_layers_list
 
     @staticmethod
@@ -184,7 +180,11 @@ class NIF(Model):
     def model_p_to_lr(self):
         input_p = tf.keras.layers.Input(shape=(self.pi_dim))
         # this model: t, mu -> hidden LR
-        return Model(inputs=[input_p], outputs=[self._call_parameter_net(input_p, self.pnet_list)[1]])
+        m = Model(inputs=[input_p], outputs=[self._call_parameter_net(input_p, self.pnet_list)[1]])
+        #Adding pruning functionality to parameter_net
+        if self.prune_parameter_net == True:
+            m = prune_low_magnitude(m, **self.pruning_params)
+        return m
 
     def model_lr_to_w(self):
         input_lr = tf.keras.layers.Input(shape=(self.pi_hidden))
