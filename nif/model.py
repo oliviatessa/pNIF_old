@@ -12,7 +12,7 @@ prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
 ConstantSparsity = tfmot.sparsity.keras.ConstantSparsity
 
 class NIF(Model):
-    def __init__(self, cfg_shape_net, cfg_parameter_net, pruning_params,  mixed_policy='float32', prune_parameter_net = True):
+    def __init__(self, cfg_shape_net, cfg_parameter_net, pruning_params, prune_parameter_net, mixed_policy='float32'):
         super(NIF, self).__init__()
         self.cfg_shape_net = cfg_shape_net
         self.si_dim = cfg_shape_net['input_dim']
