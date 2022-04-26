@@ -211,8 +211,8 @@ class NIF(Model):
                                                    l_sx=self.l_sx,
                                                    activation=self.cfg_shape_net['activation'],
                                                    variable_dtype=self.variable_Dtype)])
-
-    def _initialize_mask(self, dim_in, dim_out):
+    @staticmethod
+    def _initialize_mask(dim_in, dim_out):
         '''
         Initializes a masking layer populated with ones. 
         '''
