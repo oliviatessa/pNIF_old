@@ -99,6 +99,11 @@ class NIF(Model):
                         dtype=self.mixed_policy)
         pnet_layers_list.append(layer_1)
 
+        '''Add masking layer here'''
+        mask_1 = self._initialize_mask(self.pi_dim, self.n_st)
+        pnet_layers_list.append(mask_1)
+        
+
         # 2. hidden layer
         for i in range(self.l_st):
             tmp_layer = MLP_SimpleShortCut(self.n_st, cfg_parameter_net['activation'],
@@ -109,12 +114,19 @@ class NIF(Model):
             # tmp_layer =tf.keras.layers.Add()(identity_layer,tmp_layer)
             pnet_layers_list.append(tmp_layer)
 
+            '''Add masking layer here'''
+            tmp_mask = self._initialize_mask(self.n_st, self.n_st)
+            pnet_layers_list.append(tmp_mask)
+
         # 3. bottleneck layer
         bottleneck_layer = Dense(self.pi_hidden,
                                  kernel_initializer=initializers.TruncatedNormal(stddev=0.1),
                                  bias_initializer=initializers.TruncatedNormal(stddev=0.1),
                                  dtype=self.mixed_policy)
         pnet_layers_list.append(bottleneck_layer)
+        '''Add masking layer here'''
+        bottle_mask = self._initialize_mask(self.n_st, self.pi_hidden)
+        pnet_layers_list.append(bottle_mask)
 
         # 4. last layer
         last_layer = Dense(self.po_dim,
@@ -122,10 +134,6 @@ class NIF(Model):
                            bias_initializer=initializers.TruncatedNormal(stddev=0.1),
                            dtype=self.mixed_policy)
         pnet_layers_list.append(last_layer)
-
-        #Adding pruning functionality to parameter_net
-        if self.prune_parameter_net == True:
-            pnet_layers_list = prune_low_magnitude(pnet_layers_list, **self.pruning_params)
 
         return pnet_layers_list
 
@@ -203,6 +211,25 @@ class NIF(Model):
                                                    l_sx=self.l_sx,
                                                    activation=self.cfg_shape_net['activation'],
                                                    variable_dtype=self.variable_Dtype)])
+
+    def _initialize_mask(dim_in, dim_out):
+        '''
+        Initializes a masking layer populated with ones. 
+        '''
+        mask = tf.ones([dim_in, dim_out])
+        return mask
+
+    def _call_mask():
+        '''
+        Does element-wise multiplication with mask. 
+        '''
+        return
+
+    def _update_mask():
+        '''
+        Updates mask with zeros. 
+        '''
+        return
 
 class NIFMultiScale(NIF):
     def __init__(self, cfg_shape_net, cfg_parameter_net, mixed_policy='float32'):
