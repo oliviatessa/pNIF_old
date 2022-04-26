@@ -12,7 +12,7 @@ prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
 ConstantSparsity = tfmot.sparsity.keras.ConstantSparsity
 
 class NIF(Model):
-    def __init__(self, cfg_shape_net, cfg_parameter_net, pruning_params, mixed_policy='float32'):
+    def __init__(self, cfg_shape_net, cfg_parameter_net, mixed_policy='float32'):
         super(NIF, self).__init__()
         self.cfg_shape_net = cfg_shape_net
         self.si_dim = cfg_shape_net['input_dim']
@@ -27,10 +27,6 @@ class NIF(Model):
         self.mixed_policy = tf.keras.mixed_precision.Policy(mixed_policy) # policy object can be feed into keras.layer
         self.variable_Dtype = self.mixed_policy.variable_dtype
         self.compute_Dtype = self.mixed_policy.compute_dtype
-
-        self.prune_parameter_net = pruning_params["prune_parameter_net"]
-        del pruning_params["prune_parameter_net"]
-        self.pruning_params = pruning_params
 
         # initialize the parameter net structure
         self.pnet_list = self._initialize_pnet(cfg_parameter_net, cfg_shape_net)
@@ -99,11 +95,6 @@ class NIF(Model):
                         dtype=self.mixed_policy)
         pnet_layers_list.append(layer_1)
 
-        '''Add masking layer here'''
-        mask_1 = self._initialize_mask(self.pi_dim, self.n_st)
-        pnet_layers_list.append(mask_1)
-        
-
         # 2. hidden layer
         for i in range(self.l_st):
             tmp_layer = MLP_SimpleShortCut(self.n_st, cfg_parameter_net['activation'],
@@ -114,19 +105,12 @@ class NIF(Model):
             # tmp_layer =tf.keras.layers.Add()(identity_layer,tmp_layer)
             pnet_layers_list.append(tmp_layer)
 
-            '''Add masking layer here'''
-            tmp_mask = self._initialize_mask(self.n_st, self.n_st)
-            pnet_layers_list.append(tmp_mask)
-
         # 3. bottleneck layer
         bottleneck_layer = Dense(self.pi_hidden,
                                  kernel_initializer=initializers.TruncatedNormal(stddev=0.1),
                                  bias_initializer=initializers.TruncatedNormal(stddev=0.1),
                                  dtype=self.mixed_policy)
         pnet_layers_list.append(bottleneck_layer)
-        '''Add masking layer here'''
-        bottle_mask = self._initialize_mask(self.n_st, self.pi_hidden)
-        pnet_layers_list.append(bottle_mask)
 
         # 4. last layer
         last_layer = Dense(self.po_dim,
@@ -136,14 +120,6 @@ class NIF(Model):
         pnet_layers_list.append(last_layer)
 
         return pnet_layers_list
-
-    @staticmethod
-    def _initialize_mask(dim_in, dim_out):
-        '''
-        Initializes a masking layer populated with ones. 
-        '''
-        mask = tf.ones([dim_in, dim_out])
-        return mask
 
     @staticmethod
     def _call_shape_net(input_s, pnet_output, si_dim, so_dim, n_sx, l_sx, activation, variable_dtype):
@@ -220,17 +196,57 @@ class NIF(Model):
                                                    activation=self.cfg_shape_net['activation'],
                                                    variable_dtype=self.variable_Dtype)])
 
-    def _call_mask():
+class PNIF(NIF):
+    def __init__(self, cfg_shape_net, cfg_parameter_net, mixed_policy='float32'):
+        super(PNIF, self).__init__(cfg_shape_net, cfg_parameter_net, mixed_policy)
+
+        # initialize the mask structure
+        self.mask_list = self._initialize_masks()
+
+    def _initialize_masks(self):
         '''
-        Does element-wise multiplication with mask. 
+        Initializes list of masks that will be inserted into pnet_list.
         '''
-        return
+        mask_list = []
+
+        input_mask = MaskLayer(self.pi_dim, self.n_st)
+        mask_list.append(input_mask)
+        
+        for i in range(self.l_st):
+            tmp_mask = MaskLayer(self.n_st, self.n_st)
+            mask_list.append(tmp_mask)
+
+        bottle_mask = MaskLayer(self.n_st, self.po_dim)
+        mask_list.append(bottle_mask)
+
+        return mask_list
+
+    @staticmethod
+    def _call_parameter_net(input_p, pnet_list, mask_list):
+        latent = input_p
+
+        #Insert masks into pnet_list
+        for i in range(len(mask_list)):
+            pnet_list.insert((2*i)+1, mask_list[i])
+
+        for l in pnet_list[:-1]:
+            latent = l(latent)
+        output_final = pnet_list[-1](latent)
+        return output_final, latent
 
     def _update_mask():
-        '''
-        Updates mask with zeros. 
-        '''
-        return
+        pass
+
+class MaskLayer(tf.keras.layers.Layer):
+    def __init__(self, dim_in, dim_out):
+        super(MaskLayer, self).__init__()
+        self.dim_in = dim_in
+        self.dim_out = dim_out
+        self.mask = tf.Variable(initial_value=tf.ones((self.dim_in,self.dim_out)), trainable=False)
+
+    def call(self, inputs):
+        #Perform element-wise multiplication
+        return tf.multipy(inputs, self.mask)
 
 class NIFMultiScale(NIF):
     def __init__(self, cfg_shape_net, cfg_parameter_net, mixed_policy='float32'):
