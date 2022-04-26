@@ -138,6 +138,14 @@ class NIF(Model):
         return pnet_layers_list
 
     @staticmethod
+    def _initialize_mask(dim_in, dim_out):
+        '''
+        Initializes a masking layer populated with ones. 
+        '''
+        mask = tf.ones([dim_in, dim_out])
+        return mask
+
+    @staticmethod
     def _call_shape_net(input_s, pnet_output, si_dim, so_dim, n_sx, l_sx, activation, variable_dtype):
         w_1 = tf.reshape(pnet_output[:, :si_dim*n_sx],
                          [-1, si_dim, n_sx])
@@ -211,13 +219,6 @@ class NIF(Model):
                                                    l_sx=self.l_sx,
                                                    activation=self.cfg_shape_net['activation'],
                                                    variable_dtype=self.variable_Dtype)])
-
-    def _initialize_mask(self, dim_in, dim_out):
-        '''
-        Initializes a masking layer populated with ones. 
-        '''
-        mask = tf.ones([dim_in, dim_out])
-        return self.mask
 
     def _call_mask():
         '''
