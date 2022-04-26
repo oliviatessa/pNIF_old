@@ -3,7 +3,7 @@ from .__about__ import __version__
 import tensorflow as tf
 from tensorflow.keras import mixed_precision
 
-from .model import NIFMultiScale, NIF, NIFMultiScaleLastLayerParameterized
+from .model import NIFMultiScale, NIF, NIFMultiScaleLastLayerParameterized, PNIF
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 0:
@@ -21,5 +21,6 @@ __all__ = [
     "NIF",
     "mixed_precision",
     "optimizers",
-    "demo"
+    "demo", 
+    "PNIF"
 ]
