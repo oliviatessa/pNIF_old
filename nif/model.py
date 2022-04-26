@@ -217,7 +217,7 @@ class NIF(Model):
         Initializes a masking layer populated with ones. 
         '''
         mask = tf.ones([dim_in, dim_out])
-        return mask
+        return self.mask
 
     def _call_mask():
         '''
