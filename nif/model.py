@@ -1,4 +1,4 @@
-__all__ = ["NIFMultiScale", "NIF", "NIFMultiScaleLastLayerParameterized"]
+__all__ = ["NIFMultiScale", "NIF", "NIFMultiScaleLastLayerParameterized", "PNIF"]
 
 import tensorflow as tf
 from tensorflow.keras import Model, initializers
