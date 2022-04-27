@@ -260,7 +260,7 @@ class MaskLayer(tf.keras.layers.Layer):
 
     def call(self, inputs):
         #Perform element-wise multiplication
-        return tf.multipy(inputs, self.mask)
+        return tf.multiply(inputs, self.mask)
 
 class NIFMultiScale(NIF):
     def __init__(self, cfg_shape_net, cfg_parameter_net, mixed_policy='float32'):
