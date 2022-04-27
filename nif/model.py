@@ -203,6 +203,20 @@ class PNIF(NIF):
         # initialize the mask structure
         self.mask_list = self._initialize_masks()
 
+    def call(self, inputs, training=None, mask=None):
+        input_p = inputs[:, 0:self.pi_dim]
+        input_s = inputs[:, self.pi_dim:self.pi_dim+self.si_dim]
+        # get parameter from parameter_net
+        self.pnet_output = self._call_parameter_net(input_p, self.pnet_list, self.mask_list)[0]
+        return self._call_shape_net(tf.cast(input_s,self.compute_Dtype),
+                                    self.pnet_output,
+                                    si_dim=self.si_dim,
+                                    so_dim=self.so_dim,
+                                    n_sx=self.n_sx,
+                                    l_sx=self.l_sx,
+                                    activation=self.cfg_shape_net['activation'],
+                                    variable_dtype=self.variable_Dtype)
+
     def _initialize_masks(self):
         '''
         Initializes list of masks that will be inserted into pnet_list.
