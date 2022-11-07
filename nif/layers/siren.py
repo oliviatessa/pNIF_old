@@ -52,7 +52,7 @@ def compute_number_of_weightbias_by_its_position_for_shapenet(cfg_shape_net):
 class SIREN(tf.keras.layers.Layer):
     def __init__(self, num_inputs, num_outputs, layer_position,
                  omega_0=30., cfg_shape_net=None,
-                 mixed_policy=tf.keras.mixed_precision.Policy('float32')):
+                 mixed_policy=tf.keras.mixed_precision.experimental.Policy('float32')):
         super(SIREN, self).__init__()
         self.mixed_policy = mixed_policy
         self.compute_Dtype = self.mixed_policy.compute_dtype
@@ -130,7 +130,7 @@ class SIREN_ResNet(SIREN):
     def __init__(self, num_inputs,
                  num_outputs,
                  omega_0=30.,
-                 mixed_policy=tf.keras.mixed_precision.Policy('float32')):
+                 mixed_policy=tf.keras.mixed_precision.experimental.Policy('float32')):
         super(SIREN_ResNet, self).__init__(num_inputs, num_outputs,
                                            layer_position='hidden',
                                            omega_0=omega_0,
